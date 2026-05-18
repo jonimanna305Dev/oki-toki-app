@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+  <title>Oki Toki · 10km Range Walkie Talkie</title>
+  <link rel="shortcut icon" href="icons/icon-72.png" type="image/x-icon">
+  <!-- PWA manifest link (optional but kept) -->
+  <link rel="manifest" href="manifest.json">
+  <!-- Bootstrap 5 + Icons + Fonts -->
+  <link href="bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="fonts.googleapis.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="walkie-card p-0">
+  <div class="radio-header d-flex justify-content-between align-items-center flex-wrap">
+    <div>
+      <i class="bi bi-mic-fill text-warning me-2"></i>
+      <span class="fw-semibold text-light" style="font-size: 1.35rem;">OKI TOKI</span>
+      <div class="small text-secondary-50">Walkie · 10km P2P</div>
+    </div>
+    <div class="mt-2 mt-sm-0">
+      <span class="range-badge"><i class="bi bi-satellite"></i> <span id="rangeStatus">10km ready</span></span>
+    </div>
+  </div>
+
+  <div class="p-4 pt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 bg-dark bg-opacity-40 p-2 px-3 flex-wrap gap-2" style="border-radius: 0px;">
+      <div class="small text-light"><i class="bi bi-person-badge"></i> Your ID: <strong id="myDeviceId" class="text-info id-badge">loading...</strong></div>
+      <div class="d-flex gap-3">
+        <div><span id="connLed" class="status-led"></span> <span class="small text-light" id="connText">waiting</span></div>
+        <div><i class="bi bi-broadcast text-warning"></i> <span id="peerCount" class="small text-light">0 peer</span></div>
+      </div>
+    </div>
+
+    <!-- Audio output selector: SPEAKER / EARPIECE (works on mobile/desktop) -->
+    <div class="d-flex justify-content-between align-items-center mb-3 bg-black bg-opacity-30 p-2 px-3 flex-wrap gap-2" style="border-radius: 0px;">
+      <div class="small text-light"><i class="bi bi-speaker-fill"></i> Audio output</div>
+      <div class="d-flex gap-2">
+        <button id="speakerPhoneBtn" class="btn btn-sm speaker-toggle active"><i class="bi bi-phone"></i> Speaker</button>
+        <button id="earpieceBtn" class="btn btn-sm speaker-toggle"><i class="bi bi-earbuds"></i> Earpiece</button>
+        <button id="installBtn" class="btn btn-sm speaker-toggle d-none"> Install App </button>
+      </div>
+    </div>
+
+    <!-- Message log area -->
+    <div class="bg-black bg-opacity-30 p-3 mb-3" style="border-radius: 0px;">
+      <div class="d-flex justify-content-between mb-2">
+        <small class="text-secondary"><i class="bi bi-chat-dots"></i> Live feed</small>
+        <button id="clearLogBtn" class="btn btn-sm btn-outline-secondary py-0 px-2" style="border-radius: 0px;">clear</button>
+      </div>
+      <div id="messageList" class="msg-list" style="min-height: 200px;">
+        <div class="text-center py-4" style="color: #b0b8d4;">🎙️ Press & hold 🎤 to speak<br>🔊 Audio plays on selected output</div>
+      </div>
+    </div>
+
+    <!-- PTT button area -->
+    <div class="d-flex flex-column align-items-center justify-content-center my-2">
+      <button id="pttButton" class="talk-btn" style="touch-action: manipulation;">
+        <i class="bi bi-mic-fill" style="font-size: 2rem;"></i>
+        <span style="font-size: 0.7rem;">HOLD TO TALK</span>
+      </button>
+      <div class="recording-wave mt-3" id="waveMeter">
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      </div>
+      <div id="pttHint" class="small text-secondary mt-2">⚡ Press & hold · max 9 sec voice</div>
+    </div>
+
+    <hr class="bg-secondary my-3 opacity-25">
+
+    <!-- Text message section -->
+    <div class="mb-3">
+      <label class="small text-secondary mb-1"><i class="bi bi-chat-text"></i> Text message</label>
+      <div class="input-group input-group-sm">
+        <input type="text" id="textMessageInput" class="form-control bg-dark text-light border-secondary" placeholder="Type message (max 120 chars)" maxlength="120">
+        <button id="sendTextMsgBtn" class="btn btn-outline-info" style="border-radius: 0px;"><i class="bi bi-send-fill"></i> Send</button>
+      </div>
+    </div>
+
+    <!-- Connect area: 6-char ID management -->
+    <div class="row g-2 align-items-center">
+      <div class="col-12 col-md-7">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-dark text-light border-0" style="border-radius: 0px;"><i class="bi bi-share"></i></span>
+          <input type="text" id="inviteLinkInput" class="form-control form-control-sm bg-dark text-light border-0 id-badge" readonly value="" style="font-family: monospace; font-weight: bold; border-radius: 0px;">
+          <button id="copyInviteBtn" class="btn btn-sm btn-outline-info" style="border-radius: 0px;">copy</button>
+        </div>
+        <div class="small text-secondary mt-1"><i class="bi bi-info-circle"></i> Share this 6-char ID to connect</div>
+      </div>
+      <div class="col-12 col-md-5">
+        <div class="input-group input-group-sm">
+          <input type="text" id="remotePeerId" class="form-control form-control-sm bg-dark text-light" placeholder="Friend's 6-char ID" maxlength="6" style="text-transform: uppercase; font-family: monospace; border-radius: 0px;">
+          <button id="connectPeerBtn" class="btn btn-sm btn-outline-success" style="border-radius: 0px;"><i class="bi bi-plug"></i> Link</button>
+        </div>
+      </div>
+      <div class="col-12 mt-2">
+        <button id="resetPeerBtn" class="btn btn-outline-light w-100 btn-sm" style="border-radius: 0px;"><i class="bi bi-arrow-repeat"></i> Reset connection & new ID</button>
+      </div>
+    </div>
+    <div class="footer-note mt-3">
+      <i class="bi bi-rulers"></i> 10km range · P2P encrypted WebRTC. Exchange 6-char ID to pair.
+    </div>
+  </div>
+</div>
+
+
+
+<script src="peerjs.min.js"></script>
+<script src="script.js"></script>
+<script>
+/* =========================
+   SERVICE WORKER
+========================= */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+
+/* =========================
+   PWA INSTALL FIX
+========================= */
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.classList.remove('d-none');
+});
+
+document.getElementById('installBtn')?.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+
+  document.getElementById('installBtn').classList.add('d-none');
+});
+</script>
+
+
+</body>
+</html>

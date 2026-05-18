@@ -1,0 +1,214 @@
+
+    * {
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #0a0e17 0%, #141b2b 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      margin: 0;
+    }
+    /* Perfect responsive card — NO ROUNDED BORDERS (square/straight edges) */
+    .walkie-card {
+      max-width: 580px;
+      width: 100%;
+      background: rgba(18, 24, 36, 0.92);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 30px 50px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(255, 215, 0, 0.2) inset;
+      transition: all 0.2s ease;
+      border-radius: 0px !important;  /* REMOVED rounded borders */
+    }
+    .radio-header {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 18px 24px;
+      border-bottom: 1px solid rgba(255, 200, 50, 0.4);
+      border-radius: 0px !important;
+    }
+    .range-badge {
+      background: #0a2a1f;
+      color: #6effa8;
+      border-radius: 0px;  /* square badge */
+      padding: 6px 14px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    /* TALK BUTTON — still circular but border-radius can be fine for mic */
+    .talk-btn {
+      background: radial-gradient(circle at 35% 15%, #f54e3e, #a81e1a);
+      border: none;
+      width: 130px;
+      height: 130px;
+      border-radius: 999px;  /* keep PTT round for usability, but no other rounding */
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(255, 90, 50, 0.4);
+      transition: transform 0.05s linear, box-shadow 0.1s ease;
+      font-weight: bold;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+    .talk-btn:active {
+      transform: scale(0.94);
+      background: radial-gradient(circle at 35% 15%, #d9382a, #8b1613);
+      box-shadow: 0 6px 12px black;
+    }
+    .talk-btn.active-push {
+      background: radial-gradient(circle at 35% 15%, #ff7868, #c41e18);
+      box-shadow: 0 0 0 3px #ffaa88, 0 0 0 8px rgba(255, 80, 40, 0.5);
+      transform: scale(0.96);
+    }
+    .talk-btn.disabled-ptt {
+      opacity: 0.55;
+      filter: grayscale(0.2);
+      cursor: not-allowed;
+    }
+    .recording-wave {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .wave-bar {
+      width: 6px;
+      height: 8px;
+      background-color: #ff8866;
+      border-radius: 0px;  /* square wave bars */
+      transition: 0.07s linear;
+    }
+    .msg-bubble {
+      background: #22293f;
+      border-radius: 0px;  /* square messages */
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      border-left: 4px solid #f5a623;
+      word-break: break-word;
+    }
+    .msg-bubble div {
+      color: #ffffff !important;
+    }
+    .msg-bubble .msg-time {
+      font-size: 0.65rem;
+      color: #b0b8d4 !important;
+    }
+    .incoming-msg {
+      border-left-color: #4cd964;
+      background: #18202f;
+    }
+    .status-led {
+      width: 10px;
+      height: 10px;
+      border-radius: 0px;  /* square led indicator */
+      background: #2ecc71;
+      box-shadow: 0 0 5px #2ecc71;
+      display: inline-block;
+    }
+    .offline-led {
+      background: #ff6b6b;
+      box-shadow: none;
+    }
+    .footer-note {
+      font-size: 0.65rem;
+      text-align: center;
+      opacity: 0.7;
+      color: #aaa;
+    }
+    @media (max-width: 550px) {
+      .walkie-card {
+        border-radius: 0px !important;
+      }
+      .talk-btn {
+        width: 110px;
+        height: 110px;
+        font-size: 1.2rem;
+      }
+      .radio-header {
+        padding: 14px 18px;
+      }
+    }
+    .msg-list {
+      max-height: 280px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    .msg-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .msg-list::-webkit-scrollbar-track {
+      background: #1a1f2c;
+      border-radius: 0px;
+    }
+    .msg-list::-webkit-scrollbar-thumb {
+      background: #f5a623;
+      border-radius: 0px;
+    }
+    .speaker-toggle {
+      background: rgba(0,0,0,0.5);
+      border-radius: 0px;  /* square toggles */
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: 0.2s;
+      color: #ccc;
+      font-size: 0.8rem;
+      border: 1px solid transparent;
+    }
+    .speaker-toggle.active {
+      background: #2c6e2c;
+      color: white;
+      border-color: #5aff5a;
+      box-shadow: 0 0 4px #6eff6e;
+    }
+    .form-control, .input-group-text {
+      background-color: #1e2538 !important;
+      border-color: #2d3648 !important;
+      color: white !important;
+      border-radius: 0px !important;
+    }
+    .form-control::placeholder {
+      color: #8e96ae !important;
+    }
+    .btn-outline-light {
+      border-color: #4a5568;
+      color: #e2e8f0;
+      border-radius: 0px;
+    }
+    .btn-outline-light:hover {
+      background: #4a5568;
+      color: white;
+    }
+    .id-badge {
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .row-custom {
+      margin-top: 8px;
+    }
+    /* force all buttons, containers, input groups to square corners */
+    .btn, .input-group-text, .input-group, .form-control, .rounded-4, .rounded, .rounded-3, .rounded-pill {
+      border-radius: 0px !important;
+    }
+    .bg-dark, .bg-opacity-40, .bg-black, .bg-opacity-30 {
+      border-radius: 0px !important;
+    }
+    .walkie-card .p-4, .walkie-card .pt-3, .walkie-card .mb-3 {
+      border-radius: 0px;
+    }
+    hr {
+      opacity: 0.25;
+    }
+ 
