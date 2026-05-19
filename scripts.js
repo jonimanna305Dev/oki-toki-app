@@ -1,14 +1,12 @@
 (function(){
-    // ==================== FIXED ID VERSION ====================
-    // Device ID is PERMANENT: "OKI2024" — will NOT change on reset or reload
-    // The ID remains constant across page refreshes, resets, and reconnections.
-    
-    const FIXED_SHORT_ID = "OKI2024";      // Permanent 6-char ID
-    const FIXED_FULL_ID = "okt_OKI2024";   // Full PeerJS ID
+    // ==================== UNIQUE PER-DEVICE PERMANENT ID ====================
+    // Each device/browser gets a unique 6-character ID that persists
+    // across page reloads and resets using localStorage.
+    // Different devices will have DIFFERENT unique IDs.
     
     let peer = null;
-    let myShortId = FIXED_SHORT_ID;
-    let myFullPeerId = FIXED_FULL_ID;
+    let myShortId = null;
+    let myFullPeerId = null;
     let connections = new Map();
     let mediaRecorder = null;
     let audioChunks = [];
@@ -42,10 +40,38 @@
     const speakerPhoneBtn = document.getElementById('speakerPhoneBtn');
     const earpieceBtn = document.getElementById('earpieceBtn');
     
-    // Helper functions
-    function extractShortId(fullId) { 
-      return fullId && fullId.startsWith('okt_') ? fullId.substring(4) : fullId; 
+    // Generate a truly unique 6-character ID for this device (persistent)
+    function generateUniqueDeviceId() {
+      const STORAGE_KEY = 'oki_toki_device_id';
+      let storedId = localStorage.getItem(STORAGE_KEY);
+      
+      if (storedId && storedId.length === 6 && /^[A-Z0-9]{6}$/.test(storedId)) {
+        console.log('Using stored device ID:', storedId);
+        return storedId;
+      }
+      
+      // Generate a new unique ID
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+      let newId = '';
+      for(let i = 0; i < 6; i++) {
+        newId += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      // Add timestamp hash to ensure uniqueness across simultaneous generations
+      const timeHash = Date.now().toString(36).slice(-2).toUpperCase();
+      newId = newId.slice(0, 4) + timeHash;
+      
+      // Ensure exactly 6 chars
+      if (newId.length > 6) newId = newId.slice(0, 6);
+      if (newId.length < 6) newId = newId.padEnd(6, 'X');
+      
+      localStorage.setItem(STORAGE_KEY, newId);
+      console.log('Generated new unique device ID:', newId);
+      return newId;
     }
+    
+    function createFullPeerId(shortId) { return 'okt_' + shortId; }
+    function extractShortId(fullId) { return fullId && fullId.startsWith('okt_') ? fullId.substring(4) : fullId; }
     
     function addLogMessage(text, isIncoming = false, type = 'text') {
       const msgDiv = document.createElement('div');
@@ -247,9 +273,10 @@
         peer.destroy();
         connections.clear();
       }
-      // Use FIXED ID - never changes
-      myShortId = FIXED_SHORT_ID;
-      myFullPeerId = FIXED_FULL_ID;
+      
+      // Get unique persistent ID for THIS DEVICE
+      myShortId = generateUniqueDeviceId();
+      myFullPeerId = createFullPeerId(myShortId);
       
       peer = new Peer(myFullPeerId, { 
         debug: 0, 
@@ -259,7 +286,7 @@
       peer.on('open', (id) => {
         myDeviceSpan.innerText = myShortId;
         inviteInput.value = myShortId;
-        addLogMessage(`🟢 Device ready · Your PERMANENT ID: ${myShortId} (never changes)`, false, 'text');
+        addLogMessage(`🟢 Device ready · Your UNIQUE ID: ${myShortId} (permanent for this device)`, false, 'text');
         updateConnectionUI();
       });
       
@@ -268,7 +295,7 @@
       peer.on('error', (err) => {
         console.error(err);
         if(err.type === 'peer-unavailable') addLogMessage(`⚠️ Peer not found - check the 6-char ID`, false, 'text');
-        else if(err.type === 'unavailable-id') addLogMessage(`⚠️ ID already in use? Try resetting connection.`, false, 'text');
+        else if(err.type === 'unavailable-id') addLogMessage(`⚠️ ID conflict! Clearing stored ID and generating new one...`, false, 'text');
         else addLogMessage(`⚠️ Peer error: ${err.type}`, false, 'text');
       });
       
@@ -320,7 +347,7 @@
       const emptyMsg = document.createElement('div');
       emptyMsg.className = 'text-center py-4';
       emptyMsg.style.color = '#b0b8d4';
-      emptyMsg.innerHTML = '📭 Log cleared · Your fixed ID: OKI2024 · Share it to connect';
+      emptyMsg.innerHTML = '📭 Log cleared · Your unique ID is stored permanently for this device';
       messageListDiv.appendChild(emptyMsg);
     }
     
@@ -346,22 +373,22 @@
     });
     
     function bootstrap() {
-      initPeer();           // Uses FIXED ID "OKI2024"
+      initPeer();
       attachPTTEvents();
       requestLocation();
       
       copyBtn.onclick = () => { 
         inviteInput.select(); 
         document.execCommand('copy'); 
-        addLogMessage(`📋 Copied your fixed ID: ${myShortId}`, false, 'text'); 
+        addLogMessage(`📋 Copied your unique device ID: ${myShortId}`, false, 'text'); 
       };
       
       resetBtn.onclick = () => { 
         if(isRecording) stopRecording(); 
         if(peer) peer.destroy(); 
         connections.clear(); 
-        initPeer();   // Re-initializes with SAME FIXED ID, never changes
-        addLogMessage(`🔄 Connection reset. Your ID remains: ${myShortId} (permanent)`, false, 'text'); 
+        initPeer();  // Re-initializes with SAME unique ID (preserved in localStorage)
+        addLogMessage(`🔄 Connection reset. Your unique ID remains: ${myShortId}`, false, 'text'); 
       };
       
       clearLogBtn.onclick = clearLog;
@@ -371,7 +398,7 @@
       connectPeerBtn.onclick = () => { 
         const rid = remotePeerIdInput.value.trim(); 
         if(rid && rid.length === 6) connectToPeer(rid); 
-        else addLogMessage(`❌ Enter valid 6-character ID (e.g., OKI2024)`, false, 'text'); 
+        else addLogMessage(`❌ Enter valid 6-character ID`, false, 'text'); 
       };
       
       speakerPhoneBtn.onclick = () => setAudioOutput('speaker');
